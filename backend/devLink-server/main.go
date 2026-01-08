@@ -1,8 +1,21 @@
 package main
-import "fmt"
 
+import (
+	"context"
+	"log"
 
-func main(){
+	"github.com/ayushmehta03/devLink-backend/database"
+)
 
-	fmt.Println("start")
+func main() {
+	client := database.Connect()
+	if client == nil {
+		log.Fatal("MongoDB client is nil")
+	}
+
+	defer func() {
+		if err := client.Disconnect(context.Background()); err != nil {
+			log.Fatalf("Failed to disconnect from MongoDB: %v", err)
+		}
+	}()
 }
