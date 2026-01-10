@@ -210,6 +210,70 @@ func VerifyOtp(client *mongo.Client) gin.HandlerFunc{
 }
 
 
+func ResendOtp(client *mongo.Client)gin.HandlerFunc{
+	return func(c *gin.Context){
+
+		var req struct{
+			Email string `json:"email" validate:"required,email"`
+
+		}
+
+
+		if err:=c.ShouldBindJSON(&req);err!=nil{
+			c.JSON(http.StatusBadRequest,gin.H{"error":"Invalid input data"})
+			return
+		}
+
+		ctx,cancel:=context.WithTimeout(context.Background(),10*time.Second)
+
+		defer cancel();
+
+
+		userCollection:=database.OpenCollection("users",client)
+
+		var user models.User
+
+		err:=userCollection.FindOne(ctx,bson.M{"email":req.Email}).Decode(&user)
+
+		if err!=nil{
+			c.JSON(http.StatusNotFound,gin.H{"error":"user not found"})
+			return
+		}
+
+		if user.IsVerified{
+			c.JSON(http.StatusBadRequest,gin.H{"error":"User already verified"})
+			return
+		}
+
+		newOtp:=GenerateOTP()
+
+		hashedOtp,_:=HashPassword(newOtp)
+
+		update := bson.M{
+			"$set": bson.M{
+				"otp_hash":   hashedOtp,
+				"otp_expiry": time.Now().Add(10 * time.Minute),
+				"updated_at": time.Now(),
+			},
+		}
+
+		_,err=userCollection.UpdateOne(ctx,bson.M{"email":req.Email},update)
+
+		if err!=nil{
+		c.JSON(http.StatusInternalServerError,gin.H{"error":"Failed to resend otp"})
+		return 
+		}
+
+
+		_=utils.SendOTPEmail(user.Email,newOtp)
+
+		c.JSON(http.StatusOK,gin.H{"message":"Otp resent sucessfuly"})
+
+		
+
+	}
+}
+
 
 
 
