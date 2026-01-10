@@ -3,10 +3,10 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"math/rand"
+	"crypto/rand"
 	"net/http"
-	"strconv"
 	"time"
+	"math/big"
 
 	"github.com/ayushmehta03/devLink-backend/database"
 	"github.com/ayushmehta03/devLink-backend/models"
@@ -19,33 +19,25 @@ import (
 
 
 
-func GenerateOtp() (string){
-
-
-
-	minRange:=0000
-	maxRange:=9999
-	number:=rand.Intn((maxRange-minRange)+minRange)
-
-
-
-	otp:=strconv.Itoa(number)
-
-	return otp;
-	
-
-
-
+func GenerateOTP() string {
+	max := big.NewInt(1000000)
+	n, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		return "000000"
+	}
+	return fmt.Sprintf("%06d", n.Int64())
 }
 
 
+
+
 func HashPassword(password string) (string,error){
-	HashPassword,err:=bcrypt.GenerateFromPassword([]byte(password),bcrypt.DefaultCost)
+	bytes,err:=bcrypt.GenerateFromPassword([]byte(password),bcrypt.DefaultCost)
 	if err!=nil{
 		return "",err
 	}
 
-	return string(HashPassword),nil;
+	return string(bytes),nil;
 }
 
 
@@ -70,7 +62,7 @@ func RegisterUser(client *mongo.Client) gin.HandlerFunc{
 		return
 		}
 
-		HashPassword,err:=HashPassword(user.Password)
+		hashedPassword,err:=HashPassword(user.Password)
 
 		if err!=nil{
 			c.JSON(http.StatusBadRequest,gin.H{"error":"Internal server error"})
@@ -96,13 +88,21 @@ func RegisterUser(client *mongo.Client) gin.HandlerFunc{
 			return
 		}
 
+
+		otp:=GenerateOTP()
+		otpHash,_:=HashPassword(otp)
+
+
 		
 
 		user.UserId=bson.NewObjectID().Hex()
 		user.CreatedAt=time.Now()
 		user.UpdatedAt=time.Now()
-		user.Password=HashPassword
-		
+		user.Password=hashedPassword
+		user.IsVerified=false
+		user.Role="user"
+		user.OTPHash=otpHash
+
 
 		result,err:=userCollection.InsertOne(ctx,user)
 
