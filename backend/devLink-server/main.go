@@ -29,7 +29,7 @@ func main() {
 	router.POST("/register",controllers.RegisterUser(client))
 	router.POST("/verify-otp",controllers.VerifyOtp(client))
 	router.POST("/resend-otp",controllers.ResendOtp(client))
-
+	router.POST("/login",controllers.LoginUser(client))
 	if err:=router.Run(":8080");err!=nil{
 		fmt.Println("Failed to start server",err)
 	}

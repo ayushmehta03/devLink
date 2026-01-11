@@ -275,7 +275,74 @@ func ResendOtp(client *mongo.Client)gin.HandlerFunc{
 }
 
 
+func LoginUser(client *mongo.Client) gin.HandlerFunc{
+	return func(c*gin.Context){
 
+
+		var loginReq models.UserLogin
+
+		if err:=c.ShouldBindJSON(&loginReq);err!=nil{
+			c.JSON(http.StatusBadRequest,gin.H{"error":"Invalid input data"})
+			return
+		}
+
+		ctx,cancel:=context.WithTimeout(context.Background(),10*time.Second)
+
+		defer cancel()
+
+		userCollection:=database.OpenCollection("users",client)
+
+
+		var user models.User
+
+		err:=userCollection.FindOne(ctx,bson.M{"email":loginReq.Email}).Decode(&user)
+
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+			return
+		}
+
+		if !user.IsVerified{
+			c.JSON(http.StatusForbidden,gin.H{"error":"Please verify your account first"})
+			return
+		}
+
+
+		err=bcrypt.CompareHashAndPassword(
+			[]byte(user.Password),
+			[]byte(loginReq.Password),
+		)
+
+		if err!=nil{
+			c.JSON(http.StatusUnauthorized,gin.H{"error":"Invalid email or password"})
+			return 
+		}
+
+		token,err:=utils.GenerateToken(
+			user.Id.Hex(),
+			user.Email,
+			user.Role,
+		)
+
+		if err!=nil{
+			c.JSON(http.StatusInternalServerError,gin.H{"error":"Failed to generate token "})
+			return 
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"token": token,
+			"user": gin.H{
+				"id":    user.Id.Hex(),
+				"name":  user.UserName,
+				"email": user.Email,
+				"role":  user.Role,
+			},
+		})
+
+
+
+	}
+}
 
 
 
