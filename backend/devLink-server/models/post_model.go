@@ -20,6 +20,9 @@ type Post struct {
 
 	Tags []string `bson:"tags,omitempty" json:"tags,omitempty"`
 
+
+	ImageURL string `bson:"image_url,omitempty" json:"image_url,omitempty"`
+
 	Published bool  `bson:"published" json:"published"`
 	ViewCount int64 `bson:"view_count" json:"view_count"`
 

@@ -14,5 +14,6 @@ func ProtectedRoutes(router *gin.Engine,client *mongo.Client){
 	protected.Use(middleware.AuthMiddleWare())
 
 
-	protected.GET("/data",controllers.CheckMiddleWare(client))
+	protected.POST("/createpost",controllers.CreatePost(client))
+
 }
