@@ -94,6 +94,6 @@ func GetAllPosts(client *mongo.Client) gin.HandlerFunc{
 		}
 
 		c.JSON(http.StatusOK,posts)
-		
+
 	}
 }
