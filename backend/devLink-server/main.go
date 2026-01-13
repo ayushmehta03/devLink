@@ -29,6 +29,7 @@ func main() {
 
 	routes.AuthRoutes(router,client)
 	routes.ProtectedRoutes(router,client)
+	routes.PublicRoutes(router,client)
 	
 	if err:=router.Run(":8080");err!=nil{
 		fmt.Println("Failed to start server",err)

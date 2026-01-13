@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func CreatePost(client *mongo.Client) gin.HandlerFunc{
@@ -55,5 +56,44 @@ func CreatePost(client *mongo.Client) gin.HandlerFunc{
 		c.JSON(http.StatusCreated,gin.H{"message":"Post created successfully",
 	})
 
+	}
+}
+
+
+func GetAllPosts(client *mongo.Client) gin.HandlerFunc{
+	return func(c *gin.Context){
+
+		ctx,cancel:=context.WithTimeout(context.Background(),time.Second)
+
+		defer cancel();
+
+		collection:=database.OpenCollection("posts",client)
+
+
+		filter:=bson.M{
+			"published":true,
+		}
+
+		opts:=options.Find().SetSort(bson.M{"created_at":-1})
+
+
+		cursor,err:=collection.Find(ctx,filter,opts)
+
+		if err!=nil{
+			c.JSON(http.StatusInternalServerError,gin.H{"error":"Failed to fetch posts"})
+			return 
+		}
+		defer cursor.Close(ctx)
+
+
+		var posts []models.Post
+
+		if err:=cursor.All(ctx,&posts);err!=nil{
+			c.JSON(http.StatusInternalServerError,gin.H{"error":"Failed to parse posts"})
+			return 
+		}
+
+		c.JSON(http.StatusOK,posts)
+		
 	}
 }
