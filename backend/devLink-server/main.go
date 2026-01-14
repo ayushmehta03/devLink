@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"github.com/gin-contrib/cors"
 
 	"github.com/ayushmehta03/devLink-backend/database"
 	"github.com/ayushmehta03/devLink-backend/routes"
@@ -13,7 +14,14 @@ import (
 func main() {
 
 		router:=gin.Default()
+	router.Use(cors.New(cors.Config{
+	AllowOrigins:     []string{"http://localhost:3000"},
+	AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+	AllowHeaders:     []string{"Content-Type"},
+	AllowCredentials: true,
+}))
 
+		
 
 	client := database.Connect()
 	if client == nil {
