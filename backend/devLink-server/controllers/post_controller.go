@@ -257,8 +257,47 @@ func DeletePost(client *mongo.Client)gin.HandlerFunc{
 		postObjId,err:=bson.ObjectIDFromHex(postId)
 
 		if err!=nil{
-			c.JSON(http.StatusBadRequest)
+			c.JSON(http.StatusBadRequest,gin.H{"error":"Invalid post id"})
+			return 
 		}
+
+
+		userObjId,_:=bson.ObjectIDFromHex(userId.(string))
+
+		ctx,cancel:=context.WithTimeout(context.Background(),10*time.Second)
+
+		defer cancel()
+
+
+		collection:=database.OpenCollection("posts",client)
+
+		var post models.Post
+
+		err=collection.FindOne(ctx,bson.M{"_id":postObjId}).Decode(&post)
+
+		if err!=nil{
+			c.JSON(http.StatusNotFound,gin.H{"error":"Post not found"})
+			return 
+		}
+
+		if post.AuthorID != userObjId {
+			c.JSON(http.StatusForbidden, gin.H{"error": "You are not allowed to delete this post"})
+			return
+		}
+
+
+
+		_,err=collection.DeleteOne(ctx,bson.M{"_id":postObjId})
+
+		if err!=nil{
+		c.JSON(http.StatusInternalServerError,gin.H{"error":"Failed to delete post"})
+
+		}
+
+		c.JSON(http.StatusOK,gin.H{"message":"Post deleted successfully"})
+
+
+
 	}
 
 }
