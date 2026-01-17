@@ -90,3 +90,49 @@ func SendChatRequest(client *mongo.Client)gin.HandlerFunc{
 
 	}
 }
+
+
+func ReceiveChatRequest(client *mongo.Client)gin.HandlerFunc{
+	return func(c *gin.Context){
+
+
+		userId,exists:=c.Get("user_id")
+		if !exists{
+		c.JSON(http.StatusUnauthorized,gin.H{"error":"Unauthorized"})
+		return 
+
+		}
+
+		receiverId,_:=bson.ObjectIDFromHex(userId.(string))
+		
+		ctx,cancel:=context.WithTimeout(context.Background(),10*time.Second)
+
+		defer cancel()
+
+		chatCollection:=database.OpenCollection("chat_requests",client)
+
+
+
+		cursor,err:=chatCollection.Find(ctx,bson.M{
+			"receiver_id":receiverId,
+			"status": "pending",
+		})
+
+		if err!=nil{
+			c.JSON(http.StatusInternalServerError,gin.H{"error":"Failed to fetch requests"})
+			return 
+		}
+
+		defer cursor.Close(ctx)
+
+
+		var requests []models.ChatRequest
+
+		if err:=cursor.All(ctx,&requests);err!=nil{
+			c.JSON(http.StatusInternalServerError,gin.H{"error":"Failed to parse requests"})
+			return 
+		}
+
+		c.JSON(http.StatusOK,requests)
+	}
+}
