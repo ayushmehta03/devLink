@@ -20,4 +20,5 @@ func ProtectedRoutes(router *gin.Engine,client *mongo.Client){
 	protected.GET("/posts/archive",controllers.GetArchivePosts(client))
 	protected.GET("/auth/logout", controllers.LogoutUser())
 	protected.POST("/chat/request",controllers.SendChatRequest(client))
+	protected.GET("/chat/requests",controllers.ReceiveChatRequest(client))
 }
