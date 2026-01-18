@@ -2,8 +2,9 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
-	
+
 	"time"
 
 	"github.com/ayushmehta03/devLink-backend/database"
@@ -104,6 +105,8 @@ func ReceiveChatRequest(client *mongo.Client)gin.HandlerFunc{
 		}
 
 		receiverId,_:=bson.ObjectIDFromHex(userId.(string))
+
+		fmt.Println(receiverId)
 		
 		ctx,cancel:=context.WithTimeout(context.Background(),10*time.Second)
 
@@ -226,12 +229,13 @@ func RespondChatRequest(client *mongo.Client)gin.HandlerFunc{
 				"message":"Chat request accepted",
 				"room_id":room.ID.Hex(),
 			})
+			return 
 
 		}
 
 		c.JSON(http.StatusOK,gin.H{"message":"Chat request rejected"})
 
-		
+
 
 	}
 }
