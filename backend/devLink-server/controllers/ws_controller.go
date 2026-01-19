@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"context"
 	"net/http"
 	"os"
 
+	"github.com/ayushmehta03/devLink-backend/database"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/websocket"
@@ -45,7 +47,32 @@ func ChatWebSocket(client *mongo.Client)gin.HandlerFunc{
 
 		userId,_:=bson.ObjectIDFromHex(claims["user_id"].(string))
 
+		roomIDParam:=c.Param("room_id");
+
+		roomID,err:=bson.ObjectIDFromHex(roomIDParam)
+
+
+		if err!=nil{
+			c.JSON(http.StatusBadRequest,gin.H{"error":"Invalid room id"});
+			return 
+		}
+
+
+		roomCol:=database.OpenCollection("caht_rooms",client)
+
+		count,_:=roomCol.CountDocuments(context.Background(),bson.M{
+			"_id":roomID,
+			"participants":userId,
+		})
+
+		if count==0{
+			c.JSON(http.StatusForbidden,gin.H{"error":"Not allowed"})
+			return 
+		}
 
 		
+
+
+
 	}
 }
