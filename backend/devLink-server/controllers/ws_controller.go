@@ -70,8 +70,31 @@ func ChatWebSocket(client *mongo.Client)gin.HandlerFunc{
 			return 
 		}
 
-		
 
+		con,err:=upgarder.Upgrade(c.Writer,c.Request,nil)
+
+		if err!=nil{
+			return 
+		}
+
+
+		for{
+			var msg struct{
+				Content string `json:"content"`
+			}
+
+			err:=con.ReadJSON(&msg)
+
+			if err!=nil{
+				break
+			}
+
+
+			con.WriteJSON(gin.H{
+				"sender":userId.Hex(),
+				"content":msg.Content,
+			})
+		}
 
 
 	}
