@@ -307,3 +307,59 @@ func ChatHistory(client *mongo.Client) gin.HandlerFunc{
 		c.JSON(http.StatusOK,messages)
 	}
 }
+
+
+func MarkSeenMsg(clinet *mongo.Client)gin.HandlerFunc{
+	return func(c *gin.Context){
+		userId,exists:=c.Get("user_id")
+
+		if !exists{
+			c.JSON(http.StatusUnauthorized,gin.H{"error":"Unauthorized"})
+			return 
+		}
+
+			roomIdParam:=c.Param("room_id")
+
+			roomId,err:=bson.ObjectIDFromHex(roomIdParam)
+
+			if err!=nil{
+				c.JSON(http.StatusBadRequest,gin.H{"error":"Invalid room id"})
+				return 
+			}
+
+			userObjId,_:=bson.ObjectIDFromHex(userId.(string))
+
+			now:=time.Now()
+
+
+			ctx,cancel:=context.WithTimeout(context.Background(),10*time.Second)
+
+			defer cancel()
+
+			msgCol:=database.OpenCollection("messages",clinet)
+
+			_,err=msgCol.UpdateMany(
+				ctx,
+				bson.M{
+					"room_id":roomId,
+					"sender_id":bson.M{"$ne":userObjId},
+					"seen_at":bson.M{"$exists":false},
+				},
+
+				bson.M{
+					"$set":bson.M{"seen_at":&now},
+				},
+			)
+
+
+			if err!=nil{
+				c.JSON(http.StatusInternalServerError,gin.H{"error":"Failed to mark seen"})
+				return 
+			}
+
+			c.JSON(http.StatusOK,gin.H{"message":"Messages marked as seen"})
+
+	}
+
+
+}
