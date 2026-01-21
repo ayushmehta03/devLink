@@ -25,6 +25,8 @@ var upgarder=websocket.Upgrader{
 	},
 }
 
+var roomClients=make(map[string]map[*websocket.Conn]bool)
+
 func ChatWebSocket(client *mongo.Client)gin.HandlerFunc{
 	return func(c *gin.Context){
 		tokenString,err:=c.Cookie("access_token")
@@ -96,11 +98,28 @@ func ChatWebSocket(client *mongo.Client)gin.HandlerFunc{
 				break
 			}
 
+			roomKey:=roomID.Hex()
 
-			con.WriteJSON(gin.H{
-				"sender":userId.Hex(),
-				"content":msg.Content,
-			})
+		if roomClients[roomKey]==nil{
+			roomClients[roomKey]=make(map[*websocket.Conn]bool)
+		}
+		roomClients[roomKey][con]=true
+
+
+			response := gin.H{
+	"room_id": roomKey,
+	"sender":  userId.Hex(),
+	"content": msg.Content,
+}
+
+for clientConn := range roomClients[roomKey] {
+	err := clientConn.WriteJSON(response)
+	if err != nil {
+		clientConn.Close()
+		delete(roomClients[roomKey], clientConn)
+	}
+}
+
 
 
 			msgCol:=database.OpenCollection("messages",client)
@@ -116,10 +135,11 @@ func ChatWebSocket(client *mongo.Client)gin.HandlerFunc{
 
 			_,err=msgCol.InsertOne(context.Background(),message)
 			if err!=nil{
-				fmt.Println("WS: Failed tp save message")
+				fmt.Println("WS: Failed to save message")
 			}
 		}
 
+		
 
 	}
 }
