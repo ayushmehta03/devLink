@@ -2,7 +2,7 @@
 
 DevLink is a **full-stack web application** built for developers to **write blogs, share ideas, discover other developers, and communicate in real time**.
 
-The project focuses on **clean backend architecture, secure authentication, and real-time systems**, making it a **portfolio-ready, production-style application**.
+The project focuses on **clean backend architecture, secure authentication, and real-time systems**.
 
 ---
 
