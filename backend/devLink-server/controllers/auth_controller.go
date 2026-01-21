@@ -329,16 +329,16 @@ func LoginUser(client *mongo.Client) gin.HandlerFunc{
 			return 
 		}
 
-	  	http.SetCookie(c.Writer, &http.Cookie{
-	Name:     "access_token",
-	Value:    token,
-	Path:     "/",
-	Domain:   "localhost", // 🔥 REQUIRED
-	MaxAge:   3600 * 24,
-	HttpOnly: true,
-	Secure:   false,
-	SameSite: http.SameSiteLaxMode, // 🔥 IMPORTANT
-})
+	  c.SetCookie(
+	"access_token",
+	token,
+	3600*24,
+	"/",
+	"",
+	true,   
+	true,   
+)
+
 
 
 

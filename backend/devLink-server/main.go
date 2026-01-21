@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+
 	"github.com/gin-contrib/cors"
 
 	"github.com/ayushmehta03/devLink-backend/database"
@@ -15,7 +17,7 @@ func main() {
 
 		router:=gin.Default()
 	router.Use(cors.New(cors.Config{
-	AllowOrigins:     []string{"http://localhost:3000"},
+    AllowOrigins: []string{"*"}, 
 	AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 	AllowHeaders:     []string{"Content-Type"},
 	AllowCredentials: true,
@@ -39,9 +41,16 @@ func main() {
 	routes.ProtectedRoutes(router,client)
 	routes.PublicRoutes(router,client)
 	routes.WebSocketRoutes(router,client)
+
+	port:=os.Getenv("PORT");
+
+	if port==""{
+		port="8080"
+	}
 	
 	if err:=router.Run(":8080");err!=nil{
 		fmt.Println("Failed to start server",err)
 	}
+
 
 }
