@@ -5,30 +5,35 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { apiFetch } from "@/lib/api";
 import { FaBlog } from "react-icons/fa";
-import Link from "next/link";
 
 export default function Page() {
   const router = useRouter();
 
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [bio, setBio] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      await apiFetch("/auth/login", {
+      await apiFetch("/auth/register", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          username,
+          email,
+          password,
+          bio: bio || undefined,
+        }),
       });
 
-      toast.success("Welcome back!");
-      router.push("/dashboard");
+      toast.success("Account created! Verify your email.");
+      router.push("/verify-otp");
     } catch (err: any) {
-      console.log(err);
-      toast.error(err.message || "Login failed");
+      toast.error(err.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -36,16 +41,17 @@ export default function Page() {
 
   return (
     <main className="min-h-screen px-4 bg-[var(--color-background-dark)] flex flex-col items-center">
-      <div className="w-full max-w-md py-16">
-        <div className="bg-white dark:bg-[#121c26] rounded-2xl p-6 sm:p-8 shadow-lg">
+      {/* Signup Card */}
+      <div className="w-full max-w-md py-14">
+        <div className="bg-white dark:bg-[#121c26] rounded-2xl p-6 sm:p-8 shadow-lg animate-fade-in">
           <div className="flex justify-center mb-4">
-            <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
               Dev<span className="text-primary">Link</span>
             </h2>
           </div>
 
-          <div className="flex justify-center mb-6">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary/15 rounded-xl flex items-center justify-center border border-primary/30">
+          <div className="flex justify-center mb-5">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary/15 rounded-xl flex items-center justify-center border border-primary/30 animate-float">
               <FaBlog
                 size={28}
                 className="text-slate-500 dark:text-slate-300 sm:text-4xl"
@@ -55,14 +61,28 @@ export default function Page() {
 
           <div className="text-center mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
-              Welcome back
+              Create your account
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm sm:text-base">
-              Log in to your developer hub
+              Join the DevLink developer community
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleRegister} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                Username
+              </label>
+              <input
+                type="text"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="dev_name"
+                className="w-full h-12 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#192633] px-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Email address
@@ -72,23 +92,15 @@ export default function Page() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@devlink.com"
+                placeholder="you@devlink.io"
                 className="w-full h-12 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#192633] px-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Password
-                </label>
-                <button
-                  type="button"
-                  className="text-primary text-sm font-semibold hover:underline"
-                >
-                  Forgot?
-                </button>
-              </div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                Password
+              </label>
               <input
                 type="password"
                 required
@@ -99,39 +111,53 @@ export default function Page() {
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                Bio <span className="text-slate-400">(optional)</span>
+              </label>
+              <textarea
+                rows={3}
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Backend dev | Go | Open source"
+                className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#192633] px-4 py-2 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+              />
+            </div>
+
             <button
               type="submit"
               disabled={loading}
               className="w-full h-12 bg-blue-600 text-white font-semibold rounded-lg shadow-md shadow-primary/20 hover:opacity-95 active:scale-[0.98] transition disabled:opacity-60"
             >
-              {loading ? "Logging in…" : "Log in"}
+              {loading ? "Creating account…" : "Create account"}
             </button>
           </form>
 
           <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-6">
-            Don&apos;t have an account?{" "}
-            <Link
-              href="/register"
-              className="text-primary font-semibold hover:underline"
+            Already have an account?{" "}
+            <span
+              className="text-primary font-semibold hover:underline cursor-pointer"
+              onClick={() => router.push("/login")}
             >
-              Sign up
-            </Link>
+              Log in
+            </span>
           </p>
         </div>
       </div>
 
+      {/* Animated Code Strip */}
       <div className="w-full max-w-md pb-10">
         <div className="h-20 rounded-2xl overflow-hidden relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/40 to-indigo-600/50 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/40 to-indigo-600/40 backdrop-blur-sm" />
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="animate-code-scroll text-white/30 font-mono text-[10px] sm:text-xs whitespace-nowrap px-4">
-              console.log("Welcome to DevLink"); function auth() &#123; return
-              success;&#125;
+              POST /auth/register → user.created = true; welcome(dev) 🚀
             </span>
           </div>
         </div>
       </div>
 
+      {/* Animations */}
       <style jsx>{`
         @keyframes code-scroll {
           0% {
@@ -150,6 +176,35 @@ export default function Page() {
         .animate-code-scroll {
           animation: code-scroll 14s linear infinite;
           text-shadow: 0 0 12px rgba(99, 102, 241, 0.45);
+        }
+
+        @keyframes float {
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-6px);
+          }
+        }
+
+        .animate-float {
+          animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in {
+          animation: fade-in 0.6s ease-out;
         }
       `}</style>
     </main>
