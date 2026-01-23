@@ -79,6 +79,9 @@ func RegisterUser(client *mongo.Client) gin.HandlerFunc{
 
 		count,err:=userCollection.CountDocuments(ctx,bson.M{"email":user.Email})
 
+
+
+
 		if err!=nil{
 			c.JSON(http.StatusInternalServerError,gin.H{"error":"Failed to check existing user"})
 			return
@@ -298,7 +301,7 @@ func LoginUser(client *mongo.Client) gin.HandlerFunc{
 		err:=userCollection.FindOne(ctx,bson.M{"email":loginReq.Email}).Decode(&user)
 
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "No account found with this email "})
 			return
 		}
 

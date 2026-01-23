@@ -9,7 +9,7 @@ import { FaBlog } from "react-icons/fa";
 export default function Page() {
   const router = useRouter();
 
-  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [bio, setBio] = useState("");
@@ -23,7 +23,7 @@ export default function Page() {
       await apiFetch("/auth/register", {
         method: "POST",
         body: JSON.stringify({
-          username,
+          name,
           email,
           password,
           bio: bio || undefined,
@@ -33,6 +33,7 @@ export default function Page() {
       toast.success("Account created! Verify your email.");
       router.push("/verify-otp");
     } catch (err: any) {
+     console.log(err)
       toast.error(err.message || "Registration failed");
     } finally {
       setLoading(false);
@@ -76,8 +77,8 @@ export default function Page() {
               <input
                 type="text"
                 required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="dev_name"
                 className="w-full h-12 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#192633] px-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
