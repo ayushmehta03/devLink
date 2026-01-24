@@ -81,7 +81,6 @@ func RegisterUser(client *mongo.Client) gin.HandlerFunc{
 
 
 
-
 		if err!=nil{
 			c.JSON(http.StatusInternalServerError,gin.H{"error":"Failed to check existing user"})
 			return
