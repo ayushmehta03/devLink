@@ -134,57 +134,49 @@ func RegisterUser(client *mongo.Client) gin.HandlerFunc{
 	}
 }
 
-func VerifyOtp(client *mongo.Client) gin.HandlerFunc{
-	return func(c*gin.Context){
+func VerifyOtp(client *mongo.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-
-		var req struct{
-			Email string `json:"email" validate:"required,email"`
-			OTP string `json:"otp" validate:"required"`
-
+		var req struct {
+			Email string `json:"email"`
+			OTP   string `json:"otp"`
 		}
 
-
-		if err:=c.ShouldBindJSON(&req);err!=nil{
-			c.JSON(http.StatusBadRequest,gin.H{"message":"Invalid input "})
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 			return
 		}
 
-		ctx,cancel:=context.WithTimeout(context.Background(),10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 
-
-		defer cancel();
-
-
-		userCollection:=database.OpenCollection("users",client)
+		userCollection := database.OpenCollection("users", client)
 
 		var user models.User
-
-		err:=userCollection.FindOne(ctx,bson.M{"email":req.Email}).Decode(&user)
-		
-
-		if err!=nil{
-			c.JSON(http.StatusNotFound,gin.H{"error":"No user found"})
-
-		}
-
-		if time.Now().After(user.OTPExpiry){
-			c.JSON(http.StatusBadRequest,gin.H{"error":"OTP expired"})
+		err := userCollection.FindOne(ctx, bson.M{"email": req.Email}).Decode(&user)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 			return
 		}
 
+		if user.IsVerified {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "User already verified"})
+			return
+		}
 
-		err=bcrypt.CompareHashAndPassword(
+		if time.Now().After(user.OTPExpiry) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "OTP expired"})
+			return
+		}
+
+		err = bcrypt.CompareHashAndPassword(
 			[]byte(user.OTPHash),
 			[]byte(req.OTP),
 		)
-
-
-		if err!=nil{
-			c.JSON(http.StatusUnauthorized,gin.H{"error":"Invalid otp"})
-			return 
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid OTP"})
+			return
 		}
-
 
 		update := bson.M{
 			"$set": bson.M{
@@ -197,17 +189,31 @@ func VerifyOtp(client *mongo.Client) gin.HandlerFunc{
 			},
 		}
 
-		_,err=userCollection.UpdateOne(ctx,bson.M{"email":req.Email},update)
-
-		if err!=nil{
-			c.JSON(http.StatusInternalServerError,gin.H{"error":"Verification failed"})
-			return 
+		_, err = userCollection.UpdateOne(ctx, bson.M{"email": req.Email}, update)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Verification failed"})
+			return
 		}
 
-		c.JSON(http.StatusOK,gin.H{"message":"Account verified successfully"})
-		
+		token, err := utils.GenerateToken(user.Id.Hex(),user.Email,user.Role)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+			return
+		}
 
+		c.SetCookie(
+			"access_token",
+			token,
+			3600*24, 
+			"/",
+			"",
+			true,  // secure (false for localhost if needed)
+			true,  // httpOnly
+		)
 
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Account verified and logged in",
+		})
 	}
 }
 
