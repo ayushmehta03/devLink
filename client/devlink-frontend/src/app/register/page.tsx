@@ -31,9 +31,10 @@ export default function Page() {
       });
 
       toast.success("Account created! Verify your email.");
-      router.push("/verify-otp");
+
+      router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
     } catch (err: any) {
-     console.log(err)
+      console.error(err);
       toast.error(err.message || "Registration failed");
     } finally {
       setLoading(false);

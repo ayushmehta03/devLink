@@ -15,28 +15,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full">
+    // ✅ Enable Tailwind dark mode HERE
+    <html lang="en" className="h-full dark">
       <body
-  className={`${spaceGrotesk.variable} min-h-screen bg-[var(--color-background-dark)] text-white`}
-  style={{
-    fontFamily: "var(--font-space-grotesk), ui-sans-serif, system-ui",
-  }}
->
-  {children}
+        className={`${spaceGrotesk.variable} min-h-screen bg-background text-foreground`}
+        style={{
+          fontFamily: "var(--font-space-grotesk), ui-sans-serif, system-ui",
+        }}
+      >
+        {children}
 
-  <Toaster
-    position="top-right"
-    toastOptions={{
-      duration: 3000,
-      style: {
-        background: "#101922",
-        color: "#fff",
-        border: "1px solid #1f2937",
-      },
-    }}
-  />
-</body>
-
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: "#101922",
+              color: "#fff",
+              border: "1px solid #1f2937",
+            },
+          }}
+        />
+      </body>
     </html>
   );
 }
