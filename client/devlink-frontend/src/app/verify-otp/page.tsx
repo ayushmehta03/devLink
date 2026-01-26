@@ -13,31 +13,30 @@ export default function VerifyOtpPage() {
   const autoResendParam = searchParams.get("autoResend");
 
   const autoResentRef = useRef(false);
+  const inputsRef = useRef<HTMLInputElement[]>([]);
 
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const [seconds, setSeconds] = useState(60);
 
   const [shake, setShake] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const inputsRef = useRef<HTMLInputElement[]>([]);
-
   useEffect(() => {
-    if (!email) {
-      router.replace("/login");
-    }
+    if (!email) router.replace("/login");
   }, [email, router]);
 
   useEffect(() => {
     if (seconds <= 0) return;
-    const t = setInterval(() => {
-      setSeconds((s) => s - 1);
+
+    const timer = setInterval(() => {
+      setSeconds((s) => (s > 0 ? s - 1 : 0));
     }, 1000);
-    return () => clearInterval(t);
+
+    return () => clearInterval(timer);
   }, [seconds]);
 
-  /* ---------------- AUTO RESEND ---------------- */
   useEffect(() => {
     if (!email) return;
 
@@ -47,13 +46,11 @@ export default function VerifyOtpPage() {
     }
   }, [email, autoResendParam]);
 
-  /* ---------------- HELPERS ---------------- */
   const maskEmail = (email: string) => {
     const [name, domain] = email.split("@");
     return name.slice(0, 2) + "***@" + domain;
   };
 
-  /* ---------------- INPUT HANDLING ---------------- */
   const handleChange = (value: string, index: number) => {
     if (!/^\d?$/.test(value)) return;
 
@@ -105,16 +102,22 @@ export default function VerifyOtpPage() {
   };
 
   const resendOtp = async (silent = false) => {
+    if (seconds > 0 || resendLoading) return;
+
     try {
+      setResendLoading(true);
+
       await apiFetch("/auth/resend-otp", {
         method: "POST",
         body: JSON.stringify({ email }),
       });
 
       if (!silent) toast.success("OTP resent");
-      setSeconds(60);
+      setSeconds(60); // reset timer ONLY on success
     } catch (err: any) {
       toast.error(err?.error || "Failed to resend OTP");
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -171,19 +174,23 @@ export default function VerifyOtpPage() {
           </p>
         )}
 
-        {/* Resend */}
+        {/* RESEND */}
         <div className="text-center mt-6">
           <button
-            disabled={seconds > 0}
+            disabled={seconds > 0 || resendLoading}
             onClick={() => resendOtp(false)}
             className="text-primary font-semibold disabled:text-slate-400 transition"
           >
-            {seconds > 0 ? `Resend in ${seconds}s` : "Resend code"}
+            {resendLoading
+              ? "Resending…"
+              : seconds > 0
+              ? `Resend in ${seconds}s`
+              : "Resend code"}
           </button>
         </div>
       </div>
 
-      {/* Animations */}
+      {/* SHAKE ANIMATION */}
       <style jsx>{`
         @keyframes shake {
           0% {

@@ -88,7 +88,14 @@ func RegisterUser(client *mongo.Client) gin.HandlerFunc {
 			return
 		}
 
-		// 🔐 OTP
+
+		    avatarURL := fmt.Sprintf(
+        "https://api.dicebear.com/7.x/initials/svg?seed=%s",
+    user.UserName,
+    )
+
+
+		
 		otp := GenerateOTP()
 		otpHash, _ := HashPassword(otp)
 
@@ -99,6 +106,7 @@ func RegisterUser(client *mongo.Client) gin.HandlerFunc {
 		user.IsVerified = false
 		user.Role = "user"
 		user.OTPHash = otpHash
+		user.ProfileImage=avatarURL
 		user.OTPExpiry = time.Now().Add(10 * time.Minute)
 
 		if _, err := userCollection.InsertOne(ctx, user); err != nil {

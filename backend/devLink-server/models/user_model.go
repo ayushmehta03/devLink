@@ -16,6 +16,8 @@ type User struct {
 
 	Bio  string `bson:"bio,omitempty" json:"bio"`
 	Role string `bson:"role" json:"role"`
+    ProfileImage  string `bson:"profile_image" json:"profile_image"`
+
 
 	IsVerified bool      `bson:"is_verified" json:"is_verified"`
 	OTPHash    string    `bson:"otp_hash,omitempty" json:"-"`
