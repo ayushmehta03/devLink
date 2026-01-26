@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { apiFetch } from "@/lib/api";
 
 type Post = {
@@ -17,20 +18,19 @@ type Post = {
 };
 
 const getExcerpt = (content: string, len = 140) =>
-  content.length > len ? content.slice(0, len) + "..." : content;
+  content.length > len ? content.slice(0, len) + "…" : content;
 
 const getReadTime = (content: string) =>
   `${Math.max(1, Math.ceil(content.split(" ").length / 200))} min read`;
 
 function PostSkeleton() {
   return (
-    <div className="rounded-xl overflow-hidden bg-[#192633] border border-white/10 animate-pulse">
-      <div className="aspect-video bg-white/10" />
+    <div className="rounded-2xl bg-[#020617] border border-white/5 animate-pulse overflow-hidden">
+      <div className="aspect-video bg-white/5" />
       <div className="p-4 space-y-3">
         <div className="h-3 w-24 bg-white/10 rounded" />
         <div className="h-4 w-3/4 bg-white/10 rounded" />
         <div className="h-3 w-full bg-white/10 rounded" />
-        <div className="h-3 w-2/3 bg-white/10 rounded" />
       </div>
     </div>
   );
@@ -48,11 +48,9 @@ export default function HomePage() {
   const fetchHome = async () => {
     try {
       const res = await apiFetch("/home");
-console.log("HOME POSTS:", res.posts);
-
-      setPosts(res.posts || []);
+      setPosts(res?.posts || []);
     } catch (err) {
-      console.error("HOME API ERROR:", err);
+      console.error("HOME FEED ERROR:", err);
     } finally {
       setLoading(false);
     }
@@ -61,23 +59,23 @@ console.log("HOME POSTS:", res.posts);
   const isSinglePost = posts.length === 1;
 
   return (
-    <main className="min-h-screen bg-[var(--color-background-dark)] text-white">
-      {/* ================= HEADER ================= */}
-      <header className="sticky top-0 z-50 backdrop-blur bg-black/60 border-b border-white/10">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-2 text-xl font-bold">
-            <span className="text-primary">⌘</span> DevLink
+    <main className="min-h-screen bg-[#020617] text-slate-100">
+      <header className="sticky top-0 z-50 backdrop-blur bg-[#020617]/80 border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="text-lg font-bold tracking-tight">
+            <span className="text-blue-400">Dev</span>Link
           </div>
+
           <div className="flex gap-3">
             <button
               onClick={() => router.push("/login")}
-              className="px-4 py-2 text-sm font-semibold rounded-lg hover:bg-white/10 transition"
+              className="px-4 py-2 rounded-lg text-sm hover:bg-white/5 transition"
             >
               Login
             </button>
             <button
               onClick={() => router.push("/register")}
-              className="px-4 py-2 text-sm font-bold rounded-lg bg-primary hover:opacity-90 transition"
+              className="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 hover:bg-blue-500 transition"
             >
               Register
             </button>
@@ -87,38 +85,42 @@ console.log("HOME POSTS:", res.posts);
 
       <section className="max-w-7xl mx-auto px-4 py-14 grid grid-cols-1 lg:grid-cols-2 gap-14">
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="flex flex-col gap-6"
+          className="space-y-6"
         >
-          <div
-            className="h-60 sm:h-72 rounded-2xl bg-cover bg-center shadow-2xl"
-            style={{
-              backgroundImage:
-                "url(https://images.unsplash.com/photo-1555066931-4365d14bab8c)",
-            }}
-          />
+          <div className="relative h-64 sm:h-72 rounded-3xl overflow-hidden shadow-xl">
+            <Image
+              src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1600&auto=format&fit=crop"
+              alt="Developer coding on MacBook"
+              fill
+              priority
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-black/45" />
+          </div>
 
           <h1 className="text-4xl sm:text-5xl font-bold leading-tight">
-            Where Developers{" "}
-            <span className="text-primary">Connect</span> & Create
+            A calmer place for developers to{" "}
+            <span className="text-blue-400">think & share</span>
           </h1>
 
-          <p className="text-slate-400 text-lg max-w-xl">
-            A modern blogging and real-time chat platform built for developers.
+          <p className="text-slate-400 max-w-xl text-lg">
+            Write blogs, share ideas, and connect with developers —
+            without noise.
           </p>
 
           <div className="flex gap-4 flex-wrap">
             <button
               onClick={() => router.push("/register")}
-              className="px-8 py-4 rounded-xl bg-primary font-bold text-lg shadow-lg shadow-primary/30 hover:scale-[1.03] transition"
+              className="px-8 py-4 rounded-xl bg-blue-600 font-semibold hover:bg-blue-500 transition"
             >
-              Get Started Free
+              Get Started
             </button>
             <button
               onClick={() => router.push("/login")}
-              className="px-8 py-4 rounded-xl border border-white/20 font-semibold hover:bg-white/10 transition"
+              className="px-8 py-4 rounded-xl border border-white/10 hover:bg-white/5 transition"
             >
               Sign In
             </button>
@@ -126,10 +128,9 @@ console.log("HOME POSTS:", res.posts);
         </motion.div>
 
         <div>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Trending Now</h2>
-            <span className="text-slate-400">📈</span>
-          </div>
+          <h2 className="text-2xl font-semibold mb-6 text-slate-200">
+            Trending
+          </h2>
 
           <div
             className={
@@ -150,21 +151,24 @@ console.log("HOME POSTS:", res.posts);
                   No posts yet
                 </h3>
                 <p className="text-slate-400 mb-6 max-w-sm mx-auto">
-                  Be the first one to write on DevLink and start the
-                  conversation.
+                  Be the first to publish on DevLink.
                 </p>
                 <button
                   onClick={() => router.push("/register")}
-                  className="px-6 py-3 rounded-xl bg-primary font-bold hover:scale-[1.05] transition"
+                  className="px-6 py-3 rounded-xl bg-blue-600 font-semibold hover:bg-blue-500 transition"
                 >
-                  Create the first post
+                  Create first post
                 </button>
               </div>
             )}
 
             {!loading &&
               posts.map((post, i) => {
-                const hasImage = Boolean(post.image_url);
+                const hasImage =
+                  post.image_url &&
+                  post.image_url.startsWith("http");
+
+                const postUrl = `/post/${post.slug || post.id}`;
 
                 return (
                   <div
@@ -172,51 +176,67 @@ console.log("HOME POSTS:", res.posts);
                     className={isSinglePost ? "w-full max-w-lg" : ""}
                   >
                     <motion.div
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.1 }}
-                      onClick={() =>
-                        router.push(`/post/${post.slug || post.id}`)
-                      }
-                      className="cursor-pointer rounded-xl overflow-hidden bg-[#192633] border border-white/10 hover:scale-[1.02] transition"
+                      transition={{ delay: i * 0.08 }}
+                      onClick={() => router.push(postUrl)}
+                      className="
+                        group cursor-pointer rounded-2xl overflow-hidden
+                        bg-[#020617]
+                        border border-white/5
+                        hover:border-blue-500/30
+                        transition
+                      "
                     >
-                      {hasImage ? (
-                        <div
-                          className="aspect-video bg-cover bg-center"
-                          style={{
-                            backgroundImage: `url(${post.image_url})`,
-                          }}
-                        />
-                      ) : (
-                        <div className="h-32 sm:h-36 bg-gradient-to-br from-primary/20 to-blue-700/20 flex items-end p-4">
-                          <h3 className="text-lg sm:text-xl font-bold line-clamp-2">
-                            {post.title}
-                          </h3>
+                      {/* IMAGE (ONLY IF EXISTS) */}
+                      {hasImage && (
+                        <div className="relative aspect-video">
+                          <Image
+                            src={post.image_url!}
+                            alt={post.title}
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                       )}
 
-                      <div className="p-4 flex flex-col gap-2">
-                        <div className="text-xs text-slate-400">
+                      {/* CONTENT */}
+                      <div className="p-4 space-y-2">
+                        <div className="text-xs text-slate-500">
                           {getReadTime(post.content)} •{" "}
                           {post.view_count} views
                         </div>
 
-                        {hasImage && (
-                          <h3 className="text-lg font-bold line-clamp-2">
-                            {post.title}
-                          </h3>
-                        )}
+                        <h3
+                          className={`font-semibold leading-snug line-clamp-2 ${
+                            hasImage ? "text-lg" : "text-xl"
+                          }`}
+                        >
+                          {post.title}
+                        </h3>
 
                         <p className="text-slate-400 text-sm line-clamp-2">
                           {getExcerpt(post.content)}
                         </p>
 
+                        {/* READ MORE */}
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(postUrl);
+                          }}
+                          className="inline-block text-sm font-medium text-blue-400 hover:text-blue-300 transition"
+                        >
+                          Read more →
+                        </span>
+
+                        {/* TAGS */}
                         {post.tags && post.tags.length > 0 && (
-                          <div className="flex gap-2 flex-wrap mt-1">
+                          <div className="flex gap-2 flex-wrap pt-1">
                             {post.tags.map((tag) => (
                               <span
                                 key={tag}
-                                className="text-primary text-xs font-medium"
+                                className="text-xs text-blue-400/80"
                               >
                                 #{tag}
                               </span>
@@ -231,37 +251,6 @@ console.log("HOME POSTS:", res.posts);
           </div>
         </div>
       </section>
-
-      <section className="max-w-7xl mx-auto px-4 pb-20">
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          className="rounded-3xl p-10 bg-gradient-to-br from-primary to-blue-700 text-center shadow-2xl shadow-primary/30"
-        >
-          <h2 className="text-3xl font-bold mb-3">
-            Join the DevLink Community
-          </h2>
-          <p className="text-blue-100 mb-8 max-w-xl mx-auto">
-            Share ideas, write blogs, and connect with developers
-            worldwide.
-          </p>
-          <button
-            onClick={() => router.push("/register")}
-            className="px-10 py-4 bg-white text-primary font-bold rounded-xl text-lg hover:scale-[1.05] transition"
-          >
-            Create Your Account
-          </button>
-        </motion.div>
-      </section>
-
-      <footer className="border-t border-white/10 py-8 text-center text-slate-400 text-sm">
-        <div className="flex justify-center gap-6 mb-3 flex-wrap">
-          <a href="#">About</a>
-          <a href="#">Privacy</a>
-          <a href="#">Terms</a>
-          <a href="#">Support</a>
-        </div>
-        © 2026 DevLink — Built for devs, by devs.
-      </footer>
     </main>
   );
 }

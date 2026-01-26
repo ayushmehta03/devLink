@@ -29,8 +29,8 @@ func GetHomeFeed(client *mongo.Client) gin.HandlerFunc {
 		}
 
 		opts := options.Find().
-			SetSort(bson.D{{"created_at", -1}}). 
-			SetLimit(3)                          
+			SetSort(bson.D{{Key: "created_at", Value: -1}}).
+			SetLimit(3)
 
 		cursor, err := collection.Find(ctx, filter, opts)
 		if err != nil {
