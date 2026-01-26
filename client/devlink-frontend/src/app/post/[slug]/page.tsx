@@ -16,7 +16,6 @@ type Post = {
   content: string;
   tags?: string[];
   image_url?: string;
-  
   author_id: string;
   created_at: string;
   view_count: number;
@@ -115,14 +114,12 @@ export default function PostPage() {
         </div>
       </header>
 
-      {/* CONTENT - Increased max-width from 3xl to 4xl for a larger card feel */}
       <div className="max-w-4xl mx-auto px-4 py-8">
         <motion.article
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}
         >
-          {/* HERO IMAGE CARD - Increased height and p-0 for edge-to-edge width inside card */}
           {isValidImage(post.image_url) && (
             <Card className="mb-10 bg-[#020617] border-white/10 overflow-hidden">
               <CardContent className="p-0">
@@ -144,7 +141,6 @@ export default function PostPage() {
             </Card>
           )}
 
-          {/* Adjusted content container to keep text readable while card stays wide */}
           <div className="max-w-3xl">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-4">
               {post.title}
@@ -175,7 +171,6 @@ export default function PostPage() {
               {post.content}
             </div>
 
-            {/* RECOMMENDED */}
             {suggested.length > 0 && (
               <section className="mt-24 pt-10 border-t border-white/5">
                 <h3 className="text-lg font-semibold mb-6">

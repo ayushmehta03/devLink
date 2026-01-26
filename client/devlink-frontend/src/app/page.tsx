@@ -188,7 +188,6 @@ export default function HomePage() {
                         transition
                       "
                     >
-                      {/* IMAGE (ONLY IF EXISTS) */}
                       {hasImage && (
                         <div className="relative aspect-video">
                           <Image
@@ -200,7 +199,6 @@ export default function HomePage() {
                         </div>
                       )}
 
-                      {/* CONTENT */}
                       <div className="p-4 space-y-2">
                         <div className="text-xs text-slate-500">
                           {getReadTime(post.content)} •{" "}
@@ -219,7 +217,6 @@ export default function HomePage() {
                           {getExcerpt(post.content)}
                         </p>
 
-                        {/* READ MORE */}
                         <span
                           onClick={(e) => {
                             e.stopPropagation();
@@ -230,7 +227,6 @@ export default function HomePage() {
                           Read more →
                         </span>
 
-                        {/* TAGS */}
                         {post.tags && post.tags.length > 0 && (
                           <div className="flex gap-2 flex-wrap pt-1">
                             {post.tags.map((tag) => (
