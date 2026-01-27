@@ -1,36 +1,22 @@
-// src/lib/api.ts
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export async function apiFetch(
-  path: string,
+export const apiFetch = async (
+  url: string,
   options: RequestInit = {}
-) {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}${path}`,
-    {
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        ...(options.headers || {}),
-      },
-      ...options,
-    }
-  );
-
-  let data: any = null;
-
-  try {
-    data = await res.json();
-  } catch {
-  }
+) => {
+  const res = await fetch(`${API_URL}${url}`, {
+    ...options,
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+  });
 
   if (!res.ok) {
-    const message =
-      data?.message ||
-      data?.error ||
-      `Request failed (${res.status})`;
-
-    throw new Error(message);
+    const err = await res.json().catch(() => ({}));
+    throw err;
   }
 
-  return data;
-}
+  return res.json();
+};

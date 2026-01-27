@@ -201,7 +201,7 @@ func VerifyOtp(client *mongo.Client) gin.HandlerFunc {
 			token,
 			3600*24, 
 			"/",
-			"",
+			"localhost",
 			true,  
 			true,  
 		)
@@ -343,7 +343,7 @@ func LoginUser(client *mongo.Client) gin.HandlerFunc{
 	token,
 	3600*24,
 	"/",
-	"",
+	"localhost",
 	false,   
 	true,   
 )
@@ -374,7 +374,7 @@ func LogoutUser() gin.HandlerFunc {
 			"",
 			-1,
 			"/",
-			"",
+			"localhost",
 			true,
 			true,
 		)
@@ -384,6 +384,66 @@ func LogoutUser() gin.HandlerFunc {
 		})
 	}
 }
+
+func GetMe(client *mongo.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		// 1️⃣ Read JWT from cookie
+		tokenStr, err := c.Cookie("token")
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "not authenticated",
+			})
+			return
+		}
+
+		// 2️⃣ Verify token
+		claims, err := utils.VerifyToken(tokenStr)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "invalid token",
+			})
+			return
+		}
+
+		// 3️⃣ Convert user ID
+		userObjId, err := bson.ObjectIDFromHex(claims.UserID)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "invalid user id",
+			})
+			return
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		userCollection := database.OpenCollection("users", client)
+
+		var user models.User
+		err = userCollection.FindOne(
+			ctx,
+			bson.M{"_id": userObjId},
+		).Decode(&user)
+
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "user not found",
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"id":            user.Id,
+			"username":      user.UserName,
+			"email":         user.Email,
+			"profile_image": user.ProfileImage,
+			"role":          user.Role,
+			"created_at":    user.CreatedAt,
+		})
+	}
+}
+
 
 
 
