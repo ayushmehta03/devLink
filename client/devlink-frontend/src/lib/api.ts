@@ -1,27 +1,22 @@
-const API_BASE=process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export async function apiFetch(
-  path: string,
+export const apiFetch = async (
+  url: string,
   options: RequestInit = {}
-) {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}${path}`,
-    {
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        ...(options.headers || {}),
-      },
-      ...options,
-    }
-  );
-
-  const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
+) => {
+  const res = await fetch(`${API_URL}${url}`, {
+    ...options,
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+  });
 
   if (!res.ok) {
-    throw data || { error: "Request failed" };
+    const err = await res.json().catch(() => ({}));
+    throw err;
   }
 
-  return data;
-}
+  return res.json();
+};

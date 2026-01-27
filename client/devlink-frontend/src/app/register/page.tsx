@@ -42,7 +42,6 @@ export default function Page() {
 
   return (
     <main className="min-h-screen px-4 bg-[var(--color-background-dark)] flex flex-col items-center">
-      {/* Signup Card */}
       <div className="w-full max-w-md py-14">
         <div className="bg-white dark:bg-[#121c26] rounded-2xl p-6 sm:p-8 shadow-lg animate-fade-in">
           <div className="flex justify-center mb-4">
