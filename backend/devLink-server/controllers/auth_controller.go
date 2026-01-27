@@ -375,7 +375,7 @@ func LogoutUser() gin.HandlerFunc {
 			-1,
 			"/",
 			"localhost",
-			true,
+			false,
 			true,
 		)
 
@@ -388,8 +388,7 @@ func LogoutUser() gin.HandlerFunc {
 func GetMe(client *mongo.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		// 1️⃣ Read JWT from cookie
-		tokenStr, err := c.Cookie("token")
+		tokenStr, err := c.Cookie("access_token")
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "not authenticated",

@@ -57,7 +57,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     apiFetch("/auth/me")
-      .then((u) => setUser(u))
+      .then(setUser)
       .catch(() => router.replace("/login"));
   }, [router]);
 
@@ -86,28 +86,29 @@ export default function DashboardPage() {
 
         <div className="sticky top-0 z-50 bg-[#101922]/80 backdrop-blur">
           <div className="flex items-center justify-between p-4">
+
             <div className="flex items-start gap-3">
-              <div className="h-10 w-10 bg-primary rounded-lg flex items-center justify-center text-white">
-                <FiCode />
+              <div className="h-10 w-10 rounded-lg bg-[#233648] flex items-center justify-center">
+                <FiCode className="text-primary" size={18} />
               </div>
+
               <div className="leading-tight">
-                <p className="text-white font-semibold text-sm">DevLink</p>
-                <div className="flex items-center gap-2 text-xs text-[#92adc9]">
-                  <Image
+                <p className="text-white font-semibold text-sm " >DevLink</p>
+                <div className="flex items-center gap-2 text-xs text-[#92adc9] mt-3">
+                  <img
                     src={
                       user.profile_image ||
-                      "https://api.dicebear.com/7.x/identicon/svg?seed=user"
+                      "https://api.dicebear.com/7.x/initials/svg?seed=ayush_dev"
                     }
-                    width={18}
-                    height={18}
                     alt="user"
-                    className="rounded-full"
+                    className="w-[18px] h-[18px] rounded-full"
                   />
                   @{user.username}
                 </div>
               </div>
             </div>
 
+            {/* ACTIONS */}
             <div className="flex items-center gap-2">
               <button className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-800">
                 <FiBell />
@@ -147,7 +148,9 @@ export default function DashboardPage() {
               <div
                 key={post.id}
                 onClick={() => router.push(`/post/${post.slug}`)}
-                className="cursor-pointer rounded-xl bg-[#192633] border border-slate-800 overflow-hidden hover:border-primary/40 transition"
+                className="ison
+
+                cursor-pointer rounded-xl bg-[#192633] border border-slate-800 overflow-hidden hover:border-primary/40 transition"
               >
                 {post.image_url && (
                   <div className="relative aspect-video">
@@ -184,15 +187,13 @@ export default function DashboardPage() {
 
                   <div className="flex items-center justify-between pt-3 border-t border-slate-800 text-xs text-[#92adc9]">
                     <div className="flex items-center gap-2">
-                      <Image
+                      <img
                         src={
                           post.author.profile_image ||
-                          "https://api.dicebear.com/7.x/identicon/svg?seed=author"
+                          "https://api.dicebear.com/7.x/initials/svg?seed=author"
                         }
-                        width={24}
-                        height={24}
                         alt="author"
-                        className="rounded-full"
+                        className="w-6 h-6 rounded-full"
                       />
                       @{post.author.username}
                     </div>
@@ -207,13 +208,14 @@ export default function DashboardPage() {
             ))}
         </div>
 
-        {/* ================= BOTTOM NAV ================= */}
         <div className="fixed bottom-0 left-0 right-0 bg-[#101922]/95 border-t border-slate-800 backdrop-blur px-6 pt-3 pb-8 flex justify-between max-w-6xl mx-auto">
           <Nav icon={<FiHome />} label="Feed" active />
           <Nav icon={<FiMessageCircle />} label="Chat" />
-          <button className="-top-6 relative w-14 h-14 bg-primary rounded-full text-white flex items-center justify-center shadow-lg shadow-primary/30">
-            <FiPlus size={28} />
+
+          <button className="-top-6 relative w-14 h-14 rounded-full mt-4 text-white flex items-center justify-center shadow-lg shadow-primary/30 bg-blue-500">
+            <FiPlus size={24} />
           </button>
+
           <Nav icon={<FiCompass />} label="Discover" />
           <Nav icon={<FiUser />} label="Profile" />
         </div>
@@ -222,7 +224,6 @@ export default function DashboardPage() {
   );
 }
 
-/* ================= NAV ITEM ================= */
 
 function Nav({
   icon,
@@ -235,11 +236,11 @@ function Nav({
 }) {
   return (
     <div
-      className={`flex flex-col items-center gap-1 text-[10px] font-bold ${
-        active ? "text-primary" : "text-slate-400"
-      }`}
+      className={`flex flex-col items-center gap-1 font-bold
+        text-[10px] lg:text-[12px] hover:text-blue-500
+        ${active ? "text-primary" : "text-slate-400"}`}
     >
-      {icon}
+      <div className="text-base lg:text-lg">{icon}</div>
       {label}
     </div>
   );
