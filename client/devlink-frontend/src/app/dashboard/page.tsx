@@ -108,7 +108,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* ACTIONS */}
             <div className="flex items-center gap-2">
               <button className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-800">
                 <FiBell />

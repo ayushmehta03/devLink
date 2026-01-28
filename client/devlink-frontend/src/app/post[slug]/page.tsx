@@ -3,23 +3,31 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { apiFetch } from "@/lib/api";
 import { FiArrowLeft, FiShare2 } from "react-icons/fi";
-import { Card, CardContent } from "@/components/ui/card";
+
+/* ================= TYPES ================= */
+
+type Author = {
+  id?: string;
+  username?: string;
+  profile_image?: string;
+};
 
 type Post = {
   id: string;
   title: string;
   slug: string;
   content: string;
-  tags?: string[];
   image_url?: string;
-  author_id: string;
+  tags?: string[];
   created_at: string;
   view_count: number;
+  author?: Author;
 };
+
+/* ================= HELPERS ================= */
 
 const formatDate = (date: string) =>
   new Date(date).toLocaleDateString("en-US", {
@@ -31,15 +39,13 @@ const formatDate = (date: string) =>
 const getReadTime = (content: string) =>
   `${Math.max(1, Math.ceil(content.split(" ").length / 200))} min read`;
 
-const isValidImage = (url?: string): url is string =>
-  typeof url === "string" && url.startsWith("http");
+/* ================= PAGE ================= */
 
 export default function PostPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
 
   const [post, setPost] = useState<Post | null>(null);
-  const [suggested, setSuggested] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,17 +53,20 @@ export default function PostPage() {
 
     const load = async () => {
       try {
-        const postData = await apiFetch(`/posts/${slug}`);
-        setPost(postData);
+        const res = await apiFetch(`/posts/${slug}`);
+        const data = res?.data ?? res;
 
-        const feed = await apiFetch("/home");
-        const posts: Post[] = Array.isArray(feed)
-          ? feed
-          : feed?.posts ?? [];
-
-        setSuggested(posts.filter((p) => p.slug !== slug).slice(0, 4));
+        // 🔥 FORCE AUTHOR DEFAULTS (NO CONDITIONAL RENDERING)
+        setPost({
+          ...data,
+          author: data.author ?? {
+            username: "author",
+            profile_image: "",
+          },
+        });
       } catch (err) {
-        console.error("Post load error:", err);
+        console.error(err);
+        setPost(null);
       } finally {
         setLoading(false);
       }
@@ -68,7 +77,7 @@ export default function PostPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#020617] text-slate-400">
+      <div className="min-h-screen flex items-center justify-center bg-[#020617] text-white">
         Loading…
       </div>
     );
@@ -76,7 +85,7 @@ export default function PostPage() {
 
   if (!post) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#020617] text-slate-400">
+      <div className="min-h-screen flex items-center justify-center bg-[#020617] text-white">
         Post not found
       </div>
     );
@@ -92,123 +101,191 @@ export default function PostPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#020617] text-slate-100">
+    <main
+      className="min-h-screen bg-[#020617]"
+      style={{
+        color: "#ffffff",
+        fontSize: "16px",
+        lineHeight: "1.6",
+      }}
+    >
       {/* HEADER */}
-      <header className="sticky top-0 z-50 backdrop-blur bg-[#020617]/80 border-b border-white/5">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+      <header
+        className="sticky top-0 z-50 border-b"
+        style={{
+          background: "#020617",
+          borderColor: "rgba(255,255,255,0.05)",
+        }}
+      >
+        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-blue-400 text-sm"
+            style={{ color: "#60a5fa", fontSize: "14px" }}
           >
-            <FiArrowLeft size={16} />
-            Back
+            <FiArrowLeft /> Back
           </button>
 
           <button
             onClick={handleShare}
-            className="flex items-center gap-2 text-blue-400 text-sm"
+            style={{ color: "#60a5fa", fontSize: "14px" }}
           >
-            <FiShare2 size={16} />
-            Share
+            <FiShare2 /> Share
           </button>
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <motion.article
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25 }}
+      {/* CONTENT */}
+      <div className="max-w-4xl mx-auto px-4 py-10">
+        <article
+          style={{
+            fontSize: "16px",
+            lineHeight: "1.6",
+            color: "#ffffff",
+          }}
         >
-          {isValidImage(post.image_url) && (
-            <Card className="mb-10 bg-[#020617] border-white/10 overflow-hidden">
-              <CardContent className="p-0">
-                <div className="relative w-full h-[220px] sm:h-[350px] lg:h-[450px]">
-                  <Image
-                    src={post.image_url}
-                    alt={post.title}
-                    fill
-                    priority
-                    sizes="
-                      (max-width: 640px) 100vw,
-                      (max-width: 1200px) 100vw,
-                      1200px
-                    "
-                    className="object-cover"
-                  />
-                </div>
-              </CardContent>
-            </Card>
+          {/* IMAGE */}
+          {post.image_url && (
+            <div className="mb-10 rounded-xl overflow-hidden">
+              <div className="relative w-full h-[220px] sm:h-[400px]">
+                <Image
+                  src={post.image_url}
+                  alt={post.title}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
+            </div>
           )}
 
-          <div className="max-w-3xl">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-4">
-              {post.title}
-            </h1>
+          {/* TITLE */}
+          <h1
+            style={{
+              fontSize: "32px",
+              fontWeight: 700,
+              marginBottom: "12px",
+            }}
+          >
+            {post.title}
+          </h1>
 
-            <div className="text-sm text-slate-400 mb-6 flex flex-wrap gap-2">
-              <span>{formatDate(post.created_at)}</span>
-              <span>•</span>
-              <span>{getReadTime(post.content)}</span>
-              <span>•</span>
-              <span>{post.view_count} views</span>
-            </div>
-
-            {post.tags?.length && (
-              <div className="flex flex-wrap gap-2 mb-8">
-                {post.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-xs font-medium px-3 py-1 rounded-full bg-blue-500/10 text-blue-400"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            <div className="text-slate-300 leading-relaxed space-y-4 whitespace-pre-line">
-              {post.content}
-            </div>
-
-            {suggested.length > 0 && (
-              <section className="mt-24 pt-10 border-t border-white/5">
-                <h3 className="text-lg font-semibold mb-6">
-                  Recommended for you
-                </h3>
-
-                <div className="space-y-6">
-                  {suggested.map((p) => (
-                    <div
-                      key={p.id}
-                      onClick={() => router.push(`/post/${p.slug}`)}
-                      className="flex gap-4 cursor-pointer group"
-                    >
-                      <div className="flex-1">
-                        <h4 className="font-semibold group-hover:text-blue-400 transition line-clamp-2">
-                          {p.title}
-                        </h4>
-                        <p className="text-xs text-slate-400 mt-1 line-clamp-2">
-                          {p.content}
-                        </p>
-                      </div>
-
-                      {isValidImage(p.image_url) && (
-                        <Image
-                          src={p.image_url}
-                          alt={p.title}
-                          width={80}
-                          height={80}
-                          className="w-20 h-20 object-cover rounded-md border border-white/5"
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
+          {/* META */}
+          <div
+            style={{
+              fontSize: "14px",
+              color: "#94a3b8",
+              marginBottom: "20px",
+            }}
+          >
+            {formatDate(post.created_at)} • {getReadTime(post.content)} •{" "}
+            {post.view_count} views
           </div>
-        </motion.article>
+
+          {/* 🔥 AUTHOR (FORCED VISIBLE – NO TAILWIND) */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              marginBottom: "32px",
+              padding: "12px",
+              background: "rgba(255,255,255,0.05)",
+              borderRadius: "8px",
+            }}
+          >
+            <img
+              src={
+                post.author?.profile_image ||
+                `https://api.dicebear.com/7.x/initials/svg?seed=${post.author?.username}`
+              }
+              alt="author"
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "50%",
+              }}
+            />
+
+            <div>
+              <div
+                style={{
+                  fontSize: "16px",
+                  fontWeight: 600,
+                  color: "#ffffff",
+                }}
+              >
+                @{post.author?.username}
+              </div>
+              <div style={{ fontSize: "12px", color: "#94a3b8" }}>
+                Author
+              </div>
+            </div>
+          </div>
+
+          {/* CONTENT */}
+          <div
+            style={{
+              fontSize: "18px",
+              color: "#e5e7eb",
+              whiteSpace: "pre-line",
+            }}
+          >
+            {post.content}
+          </div>
+
+          {/* TAGS */}
+          {post.tags && post.tags.length > 0 && (
+            <div className="mt-10 flex flex-wrap gap-2">
+              {post.tags.map((tag) => (
+                <span
+                  key={tag}
+                  style={{
+                    fontSize: "12px",
+                    padding: "6px 10px",
+                    borderRadius: "6px",
+                    background: "rgba(59,130,246,0.15)",
+                    color: "#60a5fa",
+                  }}
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* AUTHOR FOOTER */}
+          <div
+            style={{
+              marginTop: "48px",
+              paddingTop: "24px",
+              borderTop: "1px solid rgba(255,255,255,0.1)",
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+            }}
+          >
+            <img
+              src={
+                post.author?.profile_image ||
+                `https://api.dicebear.com/7.x/initials/svg?seed=${post.author?.username}`
+              }
+              alt="author"
+              style={{
+                width: "56px",
+                height: "56px",
+                borderRadius: "50%",
+              }}
+            />
+            <div>
+              <div style={{ fontSize: "12px", color: "#94a3b8" }}>
+                Written by
+              </div>
+              <div style={{ fontSize: "18px", fontWeight: 700 }}>
+                @{post.author?.username}
+              </div>
+            </div>
+          </div>
+        </article>
       </div>
     </main>
   );

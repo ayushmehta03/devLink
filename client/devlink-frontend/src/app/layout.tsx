@@ -15,7 +15,6 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    // ✅ Enable Tailwind dark mode HERE
     <html lang="en" className="h-full dark">
       <body
         className={`${spaceGrotesk.variable} min-h-screen bg-background text-foreground`}
