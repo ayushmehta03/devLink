@@ -19,6 +19,7 @@ import {
 
 
 type Author = {
+  id: string;
   username: string;
   profile_image?: string;
 };
@@ -40,6 +41,7 @@ type User = {
   profile_image?: string;
 };
 
+/* ================= HELPERS ================= */
 
 const formatViews = (v: number) =>
   v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v.toString();
@@ -47,6 +49,7 @@ const formatViews = (v: number) =>
 const excerpt = (t: string, l = 90) =>
   t.length > l ? t.slice(0, l) + "…" : t;
 
+/* ================= PAGE ================= */
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -84,6 +87,7 @@ export default function DashboardPage() {
     <main className="min-h-screen bg-[#101922] flex justify-center">
       <div className="w-full max-w-6xl px-2 lg:px-6 pb-28">
 
+        {/* ================= HEADER ================= */}
         <div className="sticky top-0 z-50 bg-[#101922]/80 backdrop-blur">
           <div className="flex items-center justify-between p-4">
 
@@ -93,7 +97,8 @@ export default function DashboardPage() {
               </div>
 
               <div className="leading-tight">
-                <p className="text-white font-semibold text-sm " >DevLink</p>
+                <p className="text-white font-semibold text-sm">DevLink</p>
+
                 <div className="flex items-center gap-2 text-xs text-[#92adc9] mt-3">
                   <img
                     src={
@@ -108,7 +113,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* ACTIONS */}
             <div className="flex items-center gap-2">
               <button className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-800">
                 <FiBell />
@@ -148,9 +152,7 @@ export default function DashboardPage() {
               <div
                 key={post.id}
                 onClick={() => router.push(`/post/${post.slug}`)}
-                className="ison
-
-                cursor-pointer rounded-xl bg-[#192633] border border-slate-800 overflow-hidden hover:border-primary/40 transition"
+                className="cursor-pointer rounded-xl bg-[#192633] border border-slate-800 overflow-hidden hover:border-primary/40 transition"
               >
                 {post.image_url && (
                   <div className="relative aspect-video">
@@ -186,16 +188,24 @@ export default function DashboardPage() {
                   </p>
 
                   <div className="flex items-center justify-between pt-3 border-t border-slate-800 text-xs text-[#92adc9]">
-                    <div className="flex items-center gap-2">
+                    <div
+                      className="flex items-center gap-3 cursor-pointer hover:text-primary transition"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/users/${post.author.id}`);
+                      }}
+                    >
                       <img
                         src={
                           post.author.profile_image ||
-                          "https://api.dicebear.com/7.x/initials/svg?seed=author"
+                          `https://api.dicebear.com/7.x/initials/svg?seed=${post.author.username}`
                         }
-                        alt="author"
-                        className="w-6 h-6 rounded-full"
+                        alt={post.author.username}
+                        className="w-8 h-8 rounded-full border border-slate-700"
                       />
-                      @{post.author.username}
+                      <span className="text-sm font-semibold">
+                        @{post.author.username}
+                      </span>
                     </div>
 
                     <div className="flex items-center gap-1">

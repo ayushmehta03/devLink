@@ -3,23 +3,22 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { apiFetch } from "@/lib/api";
 import { FiArrowLeft, FiShare2 } from "react-icons/fi";
-import { Card, CardContent } from "@/components/ui/card";
+
 
 type Post = {
   id: string;
   title: string;
   slug: string;
   content: string;
-  tags?: string[];
   image_url?: string;
-  author_id: string;
+  tags?: string[];
   created_at: string;
   view_count: number;
 };
+
 
 const formatDate = (date: string) =>
   new Date(date).toLocaleDateString("en-US", {
@@ -31,15 +30,12 @@ const formatDate = (date: string) =>
 const getReadTime = (content: string) =>
   `${Math.max(1, Math.ceil(content.split(" ").length / 200))} min read`;
 
-const isValidImage = (url?: string): url is string =>
-  typeof url === "string" && url.startsWith("http");
 
 export default function PostPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
 
   const [post, setPost] = useState<Post | null>(null);
-  const [suggested, setSuggested] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,17 +43,11 @@ export default function PostPage() {
 
     const load = async () => {
       try {
-        const postData = await apiFetch(`/posts/${slug}`);
-        setPost(postData);
-
-        const feed = await apiFetch("/home");
-        const posts: Post[] = Array.isArray(feed)
-          ? feed
-          : feed?.posts ?? [];
-
-        setSuggested(posts.filter((p) => p.slug !== slug).slice(0, 4));
+        const data: Post = await apiFetch(`/posts/${slug}`);
+        setPost(data);
       } catch (err) {
-        console.error("Post load error:", err);
+        console.error("FETCH ERROR:", err);
+        setPost(null);
       } finally {
         setLoading(false);
       }
@@ -68,7 +58,7 @@ export default function PostPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#020617] text-slate-400">
+      <div className="min-h-screen flex items-center justify-center bg-[#020617] text-white">
         Loading…
       </div>
     );
@@ -76,7 +66,7 @@ export default function PostPage() {
 
   if (!post) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#020617] text-slate-400">
+      <div className="min-h-screen flex items-center justify-center bg-[#020617] text-white">
         Post not found
       </div>
     );
@@ -92,123 +82,66 @@ export default function PostPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#020617] text-slate-100">
+    <main className="min-h-screen bg-[#020617] text-white">
       {/* HEADER */}
-      <header className="sticky top-0 z-50 backdrop-blur bg-[#020617]/80 border-b border-white/5">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+      <header className="sticky top-0 z-50 border-b border-white/5 bg-[#020617]">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex justify-between">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-blue-400 text-sm"
+            className="text-sm text-blue-400 flex items-center gap-1"
           >
-            <FiArrowLeft size={16} />
-            Back
+            <FiArrowLeft /> Back
           </button>
 
           <button
             onClick={handleShare}
-            className="flex items-center gap-2 text-blue-400 text-sm"
+            className="text-sm text-blue-400 flex items-center gap-1"
           >
-            <FiShare2 size={16} />
-            Share
+            <FiShare2 /> Share
           </button>
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <motion.article
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25 }}
-        >
-          {isValidImage(post.image_url) && (
-            <Card className="mb-10 bg-[#020617] border-white/10 overflow-hidden">
-              <CardContent className="p-0">
-                <div className="relative w-full h-[220px] sm:h-[350px] lg:h-[450px]">
-                  <Image
-                    src={post.image_url}
-                    alt={post.title}
-                    fill
-                    priority
-                    sizes="
-                      (max-width: 640px) 100vw,
-                      (max-width: 1200px) 100vw,
-                      1200px
-                    "
-                    className="object-cover"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          <div className="max-w-3xl">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-4">
-              {post.title}
-            </h1>
-
-            <div className="text-sm text-slate-400 mb-6 flex flex-wrap gap-2">
-              <span>{formatDate(post.created_at)}</span>
-              <span>•</span>
-              <span>{getReadTime(post.content)}</span>
-              <span>•</span>
-              <span>{post.view_count} views</span>
+      <div className="max-w-5xl mx-auto px-4 py-10">
+        {post.image_url && (
+          <div className="mb-10 rounded-2xl overflow-hidden bg-white/5 shadow-xl">
+            <div className="relative h-[240px] sm:h-[420px]">
+              <Image
+                src={post.image_url}
+                alt={post.title}
+                fill
+                priority
+                className="object-cover"
+              />
             </div>
-
-            {post.tags?.length && (
-              <div className="flex flex-wrap gap-2 mb-8">
-                {post.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-xs font-medium px-3 py-1 rounded-full bg-blue-500/10 text-blue-400"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            <div className="text-slate-300 leading-relaxed space-y-4 whitespace-pre-line">
-              {post.content}
-            </div>
-
-            {suggested.length > 0 && (
-              <section className="mt-24 pt-10 border-t border-white/5">
-                <h3 className="text-lg font-semibold mb-6">
-                  Recommended for you
-                </h3>
-
-                <div className="space-y-6">
-                  {suggested.map((p) => (
-                    <div
-                      key={p.id}
-                      onClick={() => router.push(`/post/${p.slug}`)}
-                      className="flex gap-4 cursor-pointer group"
-                    >
-                      <div className="flex-1">
-                        <h4 className="font-semibold group-hover:text-blue-400 transition line-clamp-2">
-                          {p.title}
-                        </h4>
-                        <p className="text-xs text-slate-400 mt-1 line-clamp-2">
-                          {p.content}
-                        </p>
-                      </div>
-
-                      {isValidImage(p.image_url) && (
-                        <Image
-                          src={p.image_url}
-                          alt={p.title}
-                          width={80}
-                          height={80}
-                          className="w-20 h-20 object-cover rounded-md border border-white/5"
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
           </div>
-        </motion.article>
+        )}
+
+        <h1 className="text-3xl sm:text-4xl font-bold mb-3">
+          {post.title}
+        </h1>
+
+        <div className="text-sm text-gray-400 mb-8">
+          {formatDate(post.created_at)} • {getReadTime(post.content)} •{" "}
+          {post.view_count} views
+        </div>
+
+        <article className="text-lg leading-relaxed text-gray-200 whitespace-pre-line">
+          {post.content}
+        </article>
+
+        {post.tags && post.tags.length > 0 && (
+          <div className="mt-10 flex flex-wrap gap-2">
+            {post.tags.map((tag) => (
+              <span
+                key={tag}
+                className="text-xs px-3 py-1 rounded-md bg-blue-500/15 text-blue-400"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </main>
   );
